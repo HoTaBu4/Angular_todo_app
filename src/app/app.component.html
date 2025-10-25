@@ -6,7 +6,7 @@
         Śledź swoje działania na dziś i szybko aktualizuj ich status.
       </p>
     </div>
-    <button class="btn btn-primary">
+    <button class="btn btn-primary" type="button" (click)="openAddModal()">
       Dodaj zadanie
     </button>
   </header>
@@ -106,5 +106,86 @@
         </li>
       }
     </ul>
+  }
+
+  @if (isAddModalOpen) {
+    <div class="task-modal" role="dialog" aria-modal="true" aria-labelledby="addTaskTitle">
+      <div class="task-modal__backdrop" (click)="closeAddModal()" aria-hidden="true"></div>
+      <div class="task-modal__dialog card shadow-lg">
+        <div class="card-body p-4">
+          <div class="task-modal__header d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h2 id="addTaskTitle" class="h4 mb-1">Dodaj nowe zadanie</h2>
+              <p class="text-body-secondary mb-0">Uzupełnij szczegóły, aby dodać kolejne zadanie do listy.</p>
+            </div>
+            <button type="button" class="btn btn-link p-0 text-decoration-none" (click)="closeAddModal()" aria-label="Zamknij okno">
+              &times;
+            </button>
+          </div>
+
+          <form [formGroup]="newTaskForm" (ngSubmit)="saveTask()" novalidate>
+            <div class="row g-3">
+              <div class="col-12">
+                <label for="taskName" class="form-label">Nazwa zadania *</label>
+                <input
+                  id="taskName"
+                  type="text"
+                  class="form-control"
+                  formControlName="name"
+                  placeholder="np. Spotkanie z klientem"
+                  [class.is-invalid]="isControlInvalid('name')">
+                @if (isControlInvalid('name')) {
+                  <div class="invalid-feedback">
+                    Podaj nazwę zadania.
+                  </div>
+                }
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label for="taskDate" class="form-label">Data *</label>
+                <input
+                  id="taskDate"
+                  type="date"
+                  class="form-control"
+                  formControlName="date"
+                  [class.is-invalid]="isControlInvalid('date')">
+                @if (isControlInvalid('date')) {
+                  <div class="invalid-feedback">
+                    Podaj nadchodzącą datę.
+                  </div>
+                }
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label for="taskStatus" class="form-label">Status</label>
+                <select
+                  id="taskStatus"
+                  class="form-select"
+                  formControlName="status">
+                  @for (statusOption of addTaskStatusOptions; track statusOption) {
+                    <option [value]="statusOption">{{ statusLabels[statusOption] }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="col-12">
+                <label for="taskDescription" class="form-label">Opis</label>
+                <textarea
+                  id="taskDescription"
+                  class="form-control"
+                  rows="3"
+                  formControlName="description"
+                  placeholder="Dodatkowe szczegóły (opcjonalnie)"></textarea>
+              </div>
+            </div>
+
+            <div class="task-modal__actions d-flex flex-wrap gap-3 justify-content-end mt-4">
+              <button type="button" class="btn btn-outline-secondary" (click)="closeAddModal()">Anuluj</button>
+              <button type="submit" class="btn btn-primary" [disabled]="newTaskForm.invalid">Zapisz zadanie</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   }
 </div>

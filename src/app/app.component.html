@@ -11,49 +11,100 @@
     </button>
   </header>
 
-  <ul class="task-list list-unstyled m-0 p-0">
-    @for (task of tasks; track task.name; let index = $index) {
-      <li class="task-item border rounded-3 bg-white" [ngClass]="{ 'task-item--completed': task.status === 'Completed' }">
-        <div class="task-item__body">
-          <div class="task-item__main">
-            <div class="form-check task-item__check">
-              <input
-                type="checkbox"
-                class="form-check-input"
-                [checked]="task.status === 'Completed'"
-                (change)="toggleCompleted(task)"
-                [attr.aria-label]="'Oznacz jako ukończone: ' + task.name">
-            </div>
+  <section class="task-filters card border-0 shadow-sm mb-4">
+    <form class="card-body row g-3 align-items-end">
+      <div class="col-12 col-md-4">
+        <label for="filterName" class="form-label">Nazwa zadania</label>
+        <input
+          id="filterName"
+          type="text"
+          class="form-control"
+          placeholder="np. rachunki"
+          [(ngModel)]="filters.name"
+          name="filterName">
+      </div>
 
-            <div class="task-item__content">
-              <div class="task-item__headline">
-                <h2 class="task-item__title h5 mb-0">{{ task.name }}</h2>
-                <span class="badge" [ngClass]="getBadgeClass(task.status)">{{ task.status }}</span>
-              </div>
-              <p class="task-item__meta text-body-secondary mb-0">
-                Termin: <time [attr.datetime]="task.date">{{ task.date | date: 'dd.MM.yyyy' }}</time>
-              </p>
-            </div>
+      <div class="col-12 col-md-4">
+        <label for="filterDate" class="form-label">Data</label>
+        <input
+          id="filterDate"
+          type="date"
+          class="form-control"
+          [(ngModel)]="filters.date"
+          name="filterDate">
+      </div>
 
-            <button
-              type="button"
-              class="task-item__toggle btn btn-link text-decoration-none p-0"
-              (click)="toggleDescription(task)"
-              [attr.aria-expanded]="task.isExpanded === true"
-              [attr.aria-controls]="'task-desc-' + index">
-              {{ task.isExpanded ? 'Ukryj' : 'Pokaż' }} opis
-            </button>
-          </div>
-
-          @if (task.isExpanded) {
-            <div
-              [id]="'task-desc-' + index"
-              class="task-item__description text-body-secondary">
-              {{ task.description }}
-            </div>
+      <div class="col-12 col-md-3">
+        <label for="filterStatus" class="form-label">Status</label>
+        <select
+          id="filterStatus"
+          class="form-select"
+          [(ngModel)]="filters.status"
+          name="filterStatus">
+          @for (statusOption of statusOptions; track statusOption) {
+            <option [ngValue]="statusOption">{{ statusLabels[statusOption] }}</option>
           }
-        </div>
-      </li>
-    }
-  </ul>
+        </select>
+      </div>
+
+      <div class="col-12 col-md-auto d-flex justify-content-md-end">
+        <button type="button" class="btn btn-outline-secondary task-filters__clear" (click)="clearFilters()">
+          Wyczyść
+        </button>
+      </div>
+    </form>
+  </section>
+
+  @if (filteredTasks.length === 0) {
+    <div class="task-empty text-center text-body-secondary py-5">
+      <p class="mb-2 fw-semibold">Brak zadań spełniających kryteria.</p>
+      <p class="mb-0">Spróbuj zmienić filtry, aby zobaczyć inne wyniki.</p>
+    </div>
+  } @else {
+    <ul class="task-list list-unstyled m-0 p-0">
+      @for (task of filteredTasks; track task.name; let index = $index) {
+        <li class="task-item border rounded-3 bg-white" [ngClass]="{ 'task-item--completed': task.status === 'Completed' }">
+          <div class="task-item__body">
+            <div class="task-item__main">
+              <div class="form-check task-item__check">
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  [checked]="task.status === 'Completed'"
+                  (change)="toggleCompleted(task)"
+                  [attr.aria-label]="'Oznacz jako ukończone: ' + task.name">
+              </div>
+
+              <div class="task-item__content">
+                <div class="task-item__headline">
+                  <h2 class="task-item__title h5 mb-0">{{ task.name }}</h2>
+                  <span class="badge" [ngClass]="getBadgeClass(task.status)">{{ task.status }}</span>
+                </div>
+                <p class="task-item__meta text-body-secondary mb-0">
+                  Termin: <time [attr.datetime]="task.date">{{ task.date | date: 'dd.MM.yyyy' }}</time>
+                </p>
+              </div>
+
+              <button
+                type="button"
+                class="task-item__toggle btn btn-link text-decoration-none p-0"
+                (click)="toggleDescription(task)"
+                [attr.aria-expanded]="task.isExpanded === true"
+                [attr.aria-controls]="'task-desc-' + index">
+                {{ task.isExpanded ? 'Ukryj' : 'Pokaż' }} opis
+              </button>
+            </div>
+
+            @if (task.isExpanded) {
+              <div
+                [id]="'task-desc-' + index"
+                class="task-item__description text-body-secondary">
+                {{ task.description }}
+              </div>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
 </div>

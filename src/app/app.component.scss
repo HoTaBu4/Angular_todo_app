@@ -13,6 +13,31 @@
   padding-bottom: 1.25rem;
 }
 
+.task-filters {
+  background-color: #ffffff;
+  border-radius: 1rem;
+
+  .form-label {
+    font-weight: 600;
+    color: #343a40;
+  }
+
+  .form-control,
+  .form-select {
+    border-radius: 0.75rem;
+  }
+
+  &__clear {
+    width: 100%;
+  }
+}
+
+.task-empty {
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.68);
+}
+
 .task-title {
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -118,5 +143,18 @@
 
   .task-item__toggle {
     margin-left: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .task-filters .col-12 {
+    width: 100%;
+  }
+}
+
+@media (min-width: 768px) {
+  .task-filters__clear {
+    width: auto;
+    padding-inline: 1.75rem;
   }
 }

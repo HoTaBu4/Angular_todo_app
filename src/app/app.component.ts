@@ -1,31 +1,16 @@
 import { Component } from '@angular/core';
-import { DatePipe, NgClass, NgIf, NgFor } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormGroup, AbstractControl, ValidationErrors } from '@angular/forms';
-
-type TaskStatus = 'Completed' | 'Pending' | 'Planned';
-
-interface Task {
-  name: string;
-  status: TaskStatus;
-  date: string;
-  description: string;
-  isExpanded?: boolean;
-}
-
-type TaskStatusFilter = TaskStatus | 'all';
-
-interface TaskFilters {
-  name: string;
-  date: string;
-  status: TaskStatusFilter;
-}
+import { NgIf } from '@angular/common';
+import { Task, TaskFilters, TaskStatus, TaskStatusFilter } from './models/task.model';
+import { TaskFiltersComponent } from './task-filters/task-filters.component';
+import { TaskListComponent } from './task-list/task-list.component';
+import { TaskModalComponent } from './task-modal/task-modal.component';
 
 @Component({
   selector: 'app-root',
-  imports: [NgClass, NgIf, NgFor, DatePipe, FormsModule, ReactiveFormsModule],
+  standalone: true,
+  imports: [NgIf, TaskFiltersComponent, TaskListComponent, TaskModalComponent],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss',
-  standalone: true
+  styleUrl: './app.component.scss'
 })
 export class AppComponent {
   protected tasks: Task[] = [
@@ -49,7 +34,7 @@ export class AppComponent {
     }
   ];
 
-  private readonly statusToBadgeClass: Record<TaskStatus, string> = {
+  protected readonly badgeClassMap: Record<TaskStatus, string> = {
     Completed: 'bg-success',
     Pending: 'bg-warning text-dark',
     Planned: 'bg-secondary'
@@ -74,17 +59,6 @@ export class AppComponent {
 
   protected isAddModalOpen = false;
 
-  protected readonly newTaskForm: FormGroup;
-
-  constructor(private readonly fb: FormBuilder) {
-    this.newTaskForm = this.fb.group({
-      name: ['', [Validators.required, Validators.maxLength(120)]],
-      date: ['', [Validators.required, this.futureDateValidator]],
-      status: ['Planned'],
-      description: ['']
-    });
-  }
-
   protected get filteredTasks(): Task[] {
     return this.tasks.filter((task) => {
       const matchesName = this.filters.name.trim().length === 0
@@ -100,16 +74,8 @@ export class AppComponent {
     });
   }
 
-  protected toggleCompleted(task: Task): void {
-    task.status = task.status === 'Completed' ? 'Planned' : 'Completed';
-  }
-
-  protected toggleDescription(task: Task): void {
-    task.isExpanded = !task.isExpanded;
-  }
-
-  protected getBadgeClass(status: TaskStatus): string {
-    return this.statusToBadgeClass[status] ?? 'bg-secondary';
+  protected onFiltersChange(nextFilters: TaskFilters): void {
+    this.filters = { ...nextFilters };
   }
 
   protected clearFilters(): void {
@@ -120,67 +86,28 @@ export class AppComponent {
     };
   }
 
+  protected toggleCompleted(task: Task): void {
+    task.status = task.status === 'Completed' ? 'Planned' : 'Completed';
+  }
+
+  protected toggleDescription(task: Task): void {
+    task.isExpanded = !task.isExpanded;
+  }
+
   protected openAddModal(): void {
     this.isAddModalOpen = true;
-    this.resetNewTaskForm();
   }
 
   protected closeAddModal(): void {
     this.isAddModalOpen = false;
-    this.resetNewTaskForm();
   }
 
-  protected saveTask(): void {
-    if (this.newTaskForm.invalid) {
-      this.newTaskForm.markAllAsTouched();
-      return;
-    }
-
-    const formValue = this.newTaskForm.value;
-
-    const newTask: Task = {
-      name: (formValue.name ?? '').trim(),
-      date: formValue.date,
-      status: (formValue.status ?? 'Planned') as TaskStatus,
-      description: (formValue.description ?? '').trim(),
-      isExpanded: false
-    };
-
-    this.tasks = [...this.tasks, newTask];
+  protected handleTaskCreated(task: Task): void {
+    this.tasks = [...this.tasks, task];
     this.closeAddModal();
   }
 
-  protected isControlInvalid(controlName: string): boolean {
-    const control = this.newTaskForm.get(controlName);
-    return !!control && control.invalid && (control.dirty || control.touched);
-  }
-
-  private readonly futureDateValidator = (control: AbstractControl): ValidationErrors | null => {
-    const value = control.value;
-    if (!value) {
-      return null;
-    }
-
-    const selected = new Date(value);
-    if (Number.isNaN(selected.getTime())) {
-      return { pastDate: true };
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    selected.setHours(0, 0, 0, 0);
-
-    return selected < today ? { pastDate: true } : null;
-  };
-
-  private resetNewTaskForm(): void {
-    this.newTaskForm.reset({
-      name: '',
-      date: '',
-      status: 'Planned',
-      description: ''
-    });
-    this.newTaskForm.markAsPristine();
-    this.newTaskForm.markAsUntouched();
+  protected handleModalCancelled(): void {
+    this.closeAddModal();
   }
 }

@@ -1,0 +1,25 @@
+.task-filters {
+  background-color: #ffffff;
+  border-radius: 1rem;
+
+  .form-label {
+    font-weight: 600;
+    color: #343a40;
+  }
+
+  .form-control,
+  .form-select {
+    border-radius: 0.75rem;
+  }
+
+  &__clear {
+    width: 100%;
+  }
+}
+
+@media (min-width: 768px) {
+  .task-filters__clear {
+    width: auto;
+    padding-inline: 1.75rem;
+  }
+}

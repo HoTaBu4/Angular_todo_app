@@ -1,0 +1,40 @@
+<section class="task-filters card border-0 shadow-sm mb-4">
+  <form class="card-body row g-3 align-items-end" [formGroup]="form">
+    <div class="col-12 col-md-4">
+      <label for="filterName" class="form-label">Nazwa zadania</label>
+      <input
+        id="filterName"
+        type="text"
+        class="form-control"
+        placeholder="np. rachunki"
+        formControlName="name">
+    </div>
+
+    <div class="col-12 col-md-4">
+      <label for="filterDate" class="form-label">Data</label>
+      <input
+        id="filterDate"
+        type="date"
+        class="form-control"
+        formControlName="date">
+    </div>
+
+    <div class="col-12 col-md-3">
+      <label for="filterStatus" class="form-label">Status</label>
+      <select
+        id="filterStatus"
+        class="form-select"
+        formControlName="status">
+        @for (status of statusOptions; track status) {
+          <option [value]="status">{{ statusLabels[status] }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="col-12 col-md-auto d-flex justify-content-md-end">
+      <button type="button" class="btn btn-outline-secondary task-filters__clear" (click)="clearFilters()">
+        Wyczyść
+      </button>
+    </div>
+  </form>
+</section>

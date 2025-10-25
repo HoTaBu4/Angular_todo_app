@@ -11,49 +11,13 @@
     </button>
   </header>
 
-  <section class="task-filters card border-0 shadow-sm mb-4">
-    <form class="card-body row g-3 align-items-end">
-      <div class="col-12 col-md-4">
-        <label for="filterName" class="form-label">Nazwa zadania</label>
-        <input
-          id="filterName"
-          type="text"
-          class="form-control"
-          placeholder="np. rachunki"
-          [(ngModel)]="filters.name"
-          name="filterName">
-      </div>
-
-      <div class="col-12 col-md-4">
-        <label for="filterDate" class="form-label">Data</label>
-        <input
-          id="filterDate"
-          type="date"
-          class="form-control"
-          [(ngModel)]="filters.date"
-          name="filterDate">
-      </div>
-
-      <div class="col-12 col-md-3">
-        <label for="filterStatus" class="form-label">Status</label>
-        <select
-          id="filterStatus"
-          class="form-select"
-          [(ngModel)]="filters.status"
-          name="filterStatus">
-          @for (statusOption of statusOptions; track statusOption) {
-            <option [ngValue]="statusOption">{{ statusLabels[statusOption] }}</option>
-          }
-        </select>
-      </div>
-
-      <div class="col-12 col-md-auto d-flex justify-content-md-end">
-        <button type="button" class="btn btn-outline-secondary task-filters__clear" (click)="clearFilters()">
-          Wyczyść
-        </button>
-      </div>
-    </form>
-  </section>
+  <app-task-filters
+    [filters]="filters"
+    [statusOptions]="statusOptions"
+    [statusLabels]="statusLabels"
+    (filtersChange)="onFiltersChange($event)"
+    (clearRequested)="clearFilters()">
+  </app-task-filters>
 
   @if (filteredTasks.length === 0) {
     <div class="task-empty text-center text-body-secondary py-5">
@@ -61,131 +25,19 @@
       <p class="mb-0">Spróbuj zmienić filtry, aby zobaczyć inne wyniki.</p>
     </div>
   } @else {
-    <ul class="task-list list-unstyled m-0 p-0">
-      @for (task of filteredTasks; track task.name; let index = $index) {
-        <li class="task-item border rounded-3 bg-white" [ngClass]="{ 'task-item--completed': task.status === 'Completed' }">
-          <div class="task-item__body">
-            <div class="task-item__main">
-              <div class="form-check task-item__check">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  [checked]="task.status === 'Completed'"
-                  (change)="toggleCompleted(task)"
-                  [attr.aria-label]="'Oznacz jako ukończone: ' + task.name">
-              </div>
-
-              <div class="task-item__content">
-                <div class="task-item__headline">
-                  <h2 class="task-item__title h5 mb-0">{{ task.name }}</h2>
-                  <span class="badge" [ngClass]="getBadgeClass(task.status)">{{ task.status }}</span>
-                </div>
-                <p class="task-item__meta text-body-secondary mb-0">
-                  Termin: <time [attr.datetime]="task.date">{{ task.date | date: 'dd.MM.yyyy' }}</time>
-                </p>
-              </div>
-
-              <button
-                type="button"
-                class="task-item__toggle btn btn-link text-decoration-none p-0"
-                (click)="toggleDescription(task)"
-                [attr.aria-expanded]="task.isExpanded === true"
-                [attr.aria-controls]="'task-desc-' + index">
-                {{ task.isExpanded ? 'Ukryj' : 'Pokaż' }} opis
-              </button>
-            </div>
-
-            @if (task.isExpanded) {
-              <div
-                [id]="'task-desc-' + index"
-                class="task-item__description text-body-secondary">
-                {{ task.description }}
-              </div>
-            }
-          </div>
-        </li>
-      }
-    </ul>
+    <app-task-list
+      [tasks]="filteredTasks"
+      [badgeClassMap]="badgeClassMap"
+      (completedToggled)="toggleCompleted($event)"
+      (descriptionToggled)="toggleDescription($event)">
+    </app-task-list>
   }
 
-  @if (isAddModalOpen) {
-    <div class="task-modal" role="dialog" aria-modal="true" aria-labelledby="addTaskTitle">
-      <div class="task-modal__backdrop" (click)="closeAddModal()" aria-hidden="true"></div>
-      <div class="task-modal__dialog card shadow-lg">
-        <div class="card-body p-4">
-          <div class="task-modal__header d-flex justify-content-between align-items-start mb-3">
-            <div>
-              <h2 id="addTaskTitle" class="h4 mb-1">Dodaj nowe zadanie</h2>
-              <p class="text-body-secondary mb-0">Uzupełnij szczegóły, aby dodać kolejne zadanie do listy.</p>
-            </div>
-            <button type="button" class="btn btn-link p-0 text-decoration-none" (click)="closeAddModal()" aria-label="Zamknij okno">
-              &times;
-            </button>
-          </div>
-
-          <form [formGroup]="newTaskForm" (ngSubmit)="saveTask()" novalidate>
-            <div class="row g-3">
-              <div class="col-12">
-                <label for="taskName" class="form-label">Nazwa zadania *</label>
-                <input
-                  id="taskName"
-                  type="text"
-                  class="form-control"
-                  formControlName="name"
-                  placeholder="np. Spotkanie z klientem"
-                  [class.is-invalid]="isControlInvalid('name')">
-                @if (isControlInvalid('name')) {
-                  <div class="invalid-feedback">
-                    Podaj nazwę zadania.
-                  </div>
-                }
-              </div>
-
-              <div class="col-12 col-md-6">
-                <label for="taskDate" class="form-label">Data *</label>
-                <input
-                  id="taskDate"
-                  type="date"
-                  class="form-control"
-                  formControlName="date"
-                  [class.is-invalid]="isControlInvalid('date')">
-                @if (isControlInvalid('date')) {
-                  <div class="invalid-feedback">
-                    Podaj nadchodzącą datę.
-                  </div>
-                }
-              </div>
-
-              <div class="col-12 col-md-6">
-                <label for="taskStatus" class="form-label">Status</label>
-                <select
-                  id="taskStatus"
-                  class="form-select"
-                  formControlName="status">
-                  @for (statusOption of addTaskStatusOptions; track statusOption) {
-                    <option [value]="statusOption">{{ statusLabels[statusOption] }}</option>
-                  }
-                </select>
-              </div>
-
-              <div class="col-12">
-                <label for="taskDescription" class="form-label">Opis</label>
-                <textarea
-                  id="taskDescription"
-                  class="form-control"
-                  rows="3"
-                  formControlName="description"
-                  placeholder="Dodatkowe szczegóły (opcjonalnie)"></textarea>
-              </div>
-            </div>
-
-            <div class="task-modal__actions d-flex flex-wrap gap-3 justify-content-end mt-4">
-              <button type="button" class="btn btn-outline-secondary" (click)="closeAddModal()">Anuluj</button>
-              <button type="submit" class="btn btn-primary" [disabled]="newTaskForm.invalid">Zapisz zadanie</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  }
+  <app-task-modal
+    [isOpen]="isAddModalOpen"
+    [statusOptions]="addTaskStatusOptions"
+    [statusLabels]="statusLabels"
+    (cancel)="handleModalCancelled()"
+    (create)="handleTaskCreated($event)">
+  </app-task-modal>
 </div>
